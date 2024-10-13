@@ -6,7 +6,7 @@
 /*   By: dpalmese <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 12:05:09 by dpalmese          #+#    #+#             */
-/*   Updated: 2024/10/06 12:30:40 by dpalmese         ###   ########.fr       */
+/*   Updated: 2024/10/13 17:35:06 by dpalmese         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef LIBFT_H
@@ -100,4 +100,5 @@ size_t			ft_putnstr_fd(char *s, int len, int fd);
 int				ft_putpointer_fd(void *p, int fd);
 int				ft_putnbrbase_fd(long number, int base, int fd, int capital);
 void			free_list(t_node *list);
+int				ft_isspace(char c);
 #endif
