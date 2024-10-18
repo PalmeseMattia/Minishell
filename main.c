@@ -8,13 +8,24 @@
 #define FALSE 0
 #define PIPE '|'
 
+enum token_type
+{
+	COMMAND
+};
+
 typedef struct s_command
 {
 	char	*value;
 	char	**args;
 }	t_command;
 
-char	*strcontains(char *str, const char *set)
+typedef struct s_token
+{
+	enum token_type	type;
+	char			*value;
+}	t_token;
+
+char	*strfind(char *str, const char *set)
 {
 	char	*set_copy;
 
@@ -42,11 +53,22 @@ void	parse_command(char *command_string)
 	// Avoid whitespaces
 	while (*command_string == ' ')
 		command_string++;
-	value = strcontains(command_string, " <>|$\'\"\n\t\r\f");
+	// First string separated by whitespaces or special characters is the command
+	value = strfind(command_string, " <>|$\'\"\n\t\r\f");
 	command.value = calloc(value - command_string + 1, sizeof(char));
 	ft_strncpy(command.value, command_string, value - command_string);
 	// We have found the command, now we can search for args, redirections ecc...
+	
 	printf("Command: %s\n", command.value);
+	while (*value)
+	{
+		value = strfind(value,"<>|$\'\"");
+		if (*value == '<')
+			printf("Found <\n");
+		else if (*value == '>')
+			printf("Found >\n");
+		value++;
+	}
 }
 
 void	parse_input(char *input)
@@ -56,6 +78,7 @@ void	parse_input(char *input)
 	command_strings = ft_split(input, PIPE);
 	while (*command_strings)
 	{
+		printf("Parsing command %s\n", *command_strings);
 		parse_command(*command_strings++);
 	}
 }
