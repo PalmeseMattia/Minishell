@@ -6,6 +6,7 @@
 
 #define TRUE 1
 #define FALSE 0
+#define BOOL char
 #define PIPE '|'
 
 enum token_type
@@ -17,57 +18,74 @@ typedef struct s_command
 {
 	char	*value;
 	char	**args;
+	BOOL	right;
+	BOOL	left;
 }	t_command;
 
 typedef struct s_token
 {
-	enum token_type	type;
 	char			*value;
+	enum token_type	type;
 }	t_token;
-
-char	*strfind(char *str, const char *set)
-{
-	char	*set_copy;
-
-	set_copy = (char *)set;
-	while (*str)
-	{
-		while(*set_copy)
-		{
-			if (*str == *set_copy)
-				return str;
-			else
-				set_copy++;
-		}
-		str++;
-		set_copy = (char *)set;
-	}
-	return str;
-}
 
 void	parse_command(char *command_string)
 {
-	t_command	command;
-	char		*value;
-
-	// Avoid whitespaces
-	while (*command_string == ' ')
-		command_string++;
-	// First string separated by whitespaces or special characters is the command
-	value = strfind(command_string, " <>|$\'\"\n\t\r\f");
-	command.value = calloc(value - command_string + 1, sizeof(char));
-	ft_strncpy(command.value, command_string, value - command_string);
-	// We have found the command, now we can search for args, redirections ecc...
-	
-	printf("Command: %s\n", command.value);
-	while (*value)
+	while (*command_string)
 	{
-		value = strfind(value,"<>|$\'\"");
-		if (*value == '<')
-			printf("Found <\n");
-		else if (*value == '>')
-			printf("Found >\n");
-		value++;
+		// Left redirection 
+		if (ft_isalpha(*command_string))
+		{
+			printf("Found something\n");
+			while (ft_isalpha(*(++command_string)) && *command_string) ;
+		}
+		else if (ft_isspace(*command_string))
+			while (ft_isspace(*(++command_string))) ;
+		else if (*command_string == '<')
+		{
+			if (*(command_string + 1) && *(command_string + 1) == '<')
+			{
+				command_string++;
+				printf("Found <<\n");
+			}
+			else
+				printf("Found <\n");
+			command_string++;
+		}
+		// Right redirection
+		else if (*command_string == '>')
+		{
+			if (*(command_string + 1) && *(command_string + 1) == '>')
+			{
+				command_string++;
+				printf("Found >>\n");
+			}
+			else
+				printf("Found >\n");
+			command_string++;
+		}
+		// Strings
+		else if (*command_string == '\"')
+		{
+			printf("Found String\n");
+			while (*(++command_string) != '\"' && *command_string);
+		}
+		else if (*command_string == '\'')
+		{
+			printf("Found String\n");
+			while (*(++command_string) != '\'' && *command_string);
+		}
+		// Enviroment variables
+		else if (*command_string == '$')
+		{
+			printf("Found enviroment variable\n");
+			if (*(command_string + 1) == '{')
+			{
+				while (*(++command_string) != '}' && *command_string);
+				command_string++;
+			}
+			else
+				while (ft_isalpha(*(++command_string)) && *command_string);
+		}
 	}
 }
 
