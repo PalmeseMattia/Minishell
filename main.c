@@ -92,7 +92,6 @@ t_command	parse_command(char *command_string)
 
 		if (ft_isalpha(*command_string))
 		{
-			printf("Found something %s\n", command_string);
 			beginning = command_string;
 			while (ft_isalpha(*command_string) && *command_string)
 			{
@@ -102,21 +101,42 @@ t_command	parse_command(char *command_string)
 			// Here i have a new token :)
 			token->value = (char *)calloc(token->len + 1, sizeof(char));
 			strncpy(token->value, beginning, token->len);
-			printf("Token: %s\n", token->value);
 		}
 		else if (*command_string == '<')
 		{
 			if (*(command_string + 1) == '<')
 			{
-				printf("Found <<\n");
+				token -> len = 2;
+				token->value = (char *)calloc(token->len + 1, sizeof(char));
+				strncpy(token->value,  "<<", token->len);
 				command_string += 2;
 			}
 			else
 			{
-				printf("Found <\n");
+				token -> len = 1;
+				token->value = (char *)calloc(token->len + 1, sizeof(char));
+				strncpy(token->value,  "<", token->len);
 				command_string += 1;
 			}
 		}
+		else if (*command_string == '>')
+		{
+			if (*(command_string + 1) == '>')
+			{
+				token -> len = 2;
+				token->value = (char *)calloc(token->len + 1, sizeof(char));
+				strncpy(token->value,  ">>", token->len);
+				command_string += 2;
+			}
+			else
+			{
+				token -> len = 1;
+				token->value = (char *)calloc(token->len + 1, sizeof(char));
+				strncpy(token->value,  ">", token->len);
+				command_string += 1;
+			}
+		}
+		printf("Token: %s\n", token->value);
 		free(token);
 	}
 	return (command);
