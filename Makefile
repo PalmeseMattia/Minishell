@@ -3,10 +3,10 @@ SRC = main.c
 LIBFT_DIR = ./libft
 LIBFT = $(LIBFT_DIR)libft.a
 
-FLAGS = -Wall -Wextra -Werror -g
+FLAGS = -g #-Wall -Wextra -Werror
 
 all: LIBFT
 	gcc main.c $(FLAGS) -lreadline -lft -L$(LIBFT_DIR) -o minishell
 
 LIBFT:
-	@$(MAKE) -C $(LIBFT_DIR)
+	@$(MAKE) bonus -C $(LIBFT_DIR)

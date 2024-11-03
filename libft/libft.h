@@ -6,7 +6,7 @@
 /*   By: dpalmese <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 12:05:09 by dpalmese          #+#    #+#             */
-/*   Updated: 2024/10/13 17:35:06 by dpalmese         ###   ########.fr       */
+/*   Updated: 2024/10/29 12:09:27 by dpalmese         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef LIBFT_H
@@ -36,6 +36,7 @@ typedef struct s_node
 	char			*str;
 	struct s_node	*next;
 }	t_node;
+
 char			*get_next_line(int fd);
 t_node			*new_node(unsigned int content_size, char *content);
 void			create_list(int fd, t_node **list, char *buffer);

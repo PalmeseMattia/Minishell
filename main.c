@@ -9,10 +9,6 @@
 #define FALSE 0
 #define BOOL char
 #define PIPE '|'
-#define MAX_ARGS 100
-#define MAX_COMMANDS 100
-#define MAX_TOKEN 100
-#define MAX_STRING 100
 
 enum token_type
 {
@@ -27,32 +23,6 @@ enum token_type
 	RIGHT_ARG,
 };
 
-typedef struct s_command
-{
-	unsigned int	arg_count;
-	char			value[MAX_STRING];
-	char			args[MAX_ARGS][MAX_STRING];
-	char			left_arg[MAX_STRING];
-	char			right_arg[MAX_STRING];
-	BOOL			right;
-	BOOL			left;
-	BOOL			double_right;
-	BOOL			double_left;
-}	t_command;
-
-void	print_command(t_command command)
-{
-	printf("Value: %s\n", command.value);
-	if (command.right)
-		printf("Command has right redirection!\n");
-	if (command.left)
-		printf("Command has left redirection!\n");
-	if (command.double_right)
-		printf("Command has double right redirection!\n");
-	if (command.double_left)
-		printf("Command has double left redirection!\n");
-}
-
 typedef struct s_token
 {
 	unsigned int	len;
@@ -60,27 +30,58 @@ typedef struct s_token
 	enum token_type	type;
 }	t_token;
 
-t_command	new_command()
+typedef struct s_lexer
 {
-	t_command command;
+	t_token			*tokens;
+	unsigned int	num_tokens;
+}	t_lexer;
 
-	command.arg_count = 0;
-	command.right = FALSE;
-	command.left = FALSE;
-	command.double_right = FALSE;
-	command.double_left = FALSE;
-	return (command);
+void	get_token_type(t_token *token, t_list *tokens)
+{
+	t_list	*last_tok;
+
+	// Redirection cases
+	if (token->len == 2 && ft_strncmp(token->value, "<<", 2) == 0) {
+		printf("Token type is double left\n");
+		token->type = DOUBLE_LEFT;
+	}
+	else if (token->len == 2 && ft_strncmp(token->value, ">>", 2) == 0) {
+		printf("Token type is double right\n");
+		token->type = DOUBLE_RIGHT;
+	}
+	else if (token->len == 1 && ft_strncmp(token->value, "<", 1) == 0) {
+		printf("Token type is left\n");
+		token->type = LEFT;
+	}
+	else if (token->len == 1 && ft_strncmp(token->value, ">", 1) == 0) {
+		printf("Token type is right\n");
+		token->type = RIGHT;
+	}
+	// TODO: remember to add other bash symbols
+	else {
+		last_tok = ft_lstlast(tokens);
+		// If this can be a command, we check if we already have a command
+		if (last_tok)
+		printf("Last token was %s of type %d\n", ((t_token *)(last_tok->content))->value, ((t_token *)(last_tok->content))->type);
+		if (last_tok == NULL || ((t_token *)(last_tok->content))->type != COMMAND)
+		{
+			printf("This is a command\n");
+			token->type = COMMAND;
+		}
+		else if(last_tok != NULL && (((t_token *)(last_tok->content))->type == COMMAND || ((t_token *)(last_tok->content))->type == ARG))
+		{
+			printf("This is an argument\n");
+		}
+	}
 }
 
-
-
-t_command	parse_command(char *command_string)
+void	parse_command(char *command_string)
 {
 	char			*beginning;
-	t_command		command;
 	t_token			*token;
+	t_list			*tokens;
 
-	command = new_command();
+	tokens = NULL;
 	while (*command_string)
 	{
 		beginning = NULL;
@@ -98,7 +99,7 @@ t_command	parse_command(char *command_string)
 				command_string++;
 				token -> len++;
 			}
-			// Here i have a new token :)
+			// Here i have a new token
 			token->value = (char *)calloc(token->len + 1, sizeof(char));
 			strncpy(token->value, beginning, token->len);
 		}
@@ -137,22 +138,20 @@ t_command	parse_command(char *command_string)
 			}
 		}
 		printf("Token: %s\n", token->value);
-		free(token);
+		get_token_type(token, tokens);
+		ft_lstadd_back(&tokens, ft_lstnew(token));
 	}
-	return (command);
 }
 
 void	parse_input(char *input)
 {
 	char		**command_strings;
-	t_command	current;
 
 	command_strings = ft_split(input, PIPE);
 	while (*command_strings)
 	{
 		printf("Parsing command %s\n", *command_strings);
-		current = parse_command(*command_strings++);
-		print_command(current);
+		parse_command(*command_strings++);
 	}
 }
 
