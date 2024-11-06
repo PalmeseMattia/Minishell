@@ -36,9 +36,26 @@ typedef struct s_lexer
 	unsigned int	num_tokens;
 }	t_lexer;
 
+BOOL	has_command(t_list *tokens)
+{
+	t_list	*node;
+
+	if (!tokens)
+		return (FALSE);
+	node = tokens;
+	while (node)
+	{
+		if (((t_token *)(node->content))->type == COMMAND)
+			return (TRUE);
+		node = node->next;
+	}
+	return (FALSE);
+}
+
 void	get_token_type(t_token *token, t_list *tokens)
 {
-	t_list	*last_tok;
+	t_list	*last_node;
+	t_token	*last_token;
 
 	// Redirection cases
 	if (token->len == 2 && ft_strncmp(token->value, "<<", 2) == 0) {
@@ -59,18 +76,32 @@ void	get_token_type(t_token *token, t_list *tokens)
 	}
 	// TODO: remember to add other bash symbols
 	else {
-		last_tok = ft_lstlast(tokens);
+		last_node = ft_lstlast(tokens);
 		// If this can be a command, we check if we already have a command
-		if (last_tok)
-		printf("Last token was %s of type %d\n", ((t_token *)(last_tok->content))->value, ((t_token *)(last_tok->content))->type);
-		if (last_tok == NULL || ((t_token *)(last_tok->content))->type != COMMAND)
+		if (last_node) {
+			last_token = (t_token *)last_node->content;
+			printf("Last token was %s of type %d\n", last_token->value, last_token->type);
+		}
+		// Create function to check if a command exists
+		if (last_node && (last_token->type == DOUBLE_LEFT || last_token->type == LEFT))
+		{
+			printf("This is the left redirection argument\n");
+			token->type = LEFT_ARG;
+		}
+		else if (last_node && (last_token->type == DOUBLE_RIGHT || last_token->type == RIGHT))
+		{
+			printf("This is the right redirection argument\n");
+			token->type = RIGHT_ARG;
+		}
+		else if(last_node && (last_token->type == COMMAND || last_token->type == ARG))
+		{
+			printf("This is an argument\n");
+			token->type = ARG;
+		}
+		else if (!last_node || !has_command(tokens))
 		{
 			printf("This is a command\n");
 			token->type = COMMAND;
-		}
-		else if(last_tok != NULL && (((t_token *)(last_tok->content))->type == COMMAND || ((t_token *)(last_tok->content))->type == ARG))
-		{
-			printf("This is an argument\n");
 		}
 	}
 }
@@ -91,10 +122,10 @@ void	parse_command(char *command_string)
 			command_string++;
 		}
 
-		if (ft_isalpha(*command_string))
+		if (ft_isalpha(*command_string) || *command_string == '-')
 		{
 			beginning = command_string;
-			while (ft_isalpha(*command_string) && *command_string)
+			while (ft_isalpha(*command_string) || *command_string == '-' && *command_string)
 			{
 				command_string++;
 				token -> len++;
@@ -140,6 +171,7 @@ void	parse_command(char *command_string)
 		printf("Token: %s\n", token->value);
 		get_token_type(token, tokens);
 		ft_lstadd_back(&tokens, ft_lstnew(token));
+		printf("\n");
 	}
 }
 
