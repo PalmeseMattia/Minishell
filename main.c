@@ -36,6 +36,18 @@ typedef struct s_lexer
 	unsigned int	num_tokens;
 }	t_lexer;
 
+typedef struct s_command
+{
+	char	*command;
+	char	**args;
+	char	*left_arg;
+	char	*right_arg;
+	BOOL	left_redir;
+	BOOL	double_left_redir;
+	BOOL	right_redir;
+	BOOL	double_right_redir;
+}	t_command;
+
 BOOL	has_command(t_list *tokens)
 {
 	t_list	*node;
@@ -57,56 +69,60 @@ void	get_token_type(t_token *token, t_list *tokens)
 	t_list	*last_node;
 	t_token	*last_token;
 
-	// Redirection cases
-	if (token->len == 2 && ft_strncmp(token->value, "<<", 2) == 0) {
-		printf("Token type is double left\n");
+	if (token->len == 2 && ft_strncmp(token->value, "<<", 2) == 0)		// DOUBLE LEFT REDIRECTION
 		token->type = DOUBLE_LEFT;
-	}
-	else if (token->len == 2 && ft_strncmp(token->value, ">>", 2) == 0) {
-		printf("Token type is double right\n");
+	else if (token->len == 2 && ft_strncmp(token->value, ">>", 2) == 0)	// DOUBLE RIGHT REDIRECTION
 		token->type = DOUBLE_RIGHT;
-	}
-	else if (token->len == 1 && ft_strncmp(token->value, "<", 1) == 0) {
-		printf("Token type is left\n");
+	else if (token->len == 1 && ft_strncmp(token->value, "<", 1) == 0)	// LEFT REDIRECTION
 		token->type = LEFT;
-	}
-	else if (token->len == 1 && ft_strncmp(token->value, ">", 1) == 0) {
-		printf("Token type is right\n");
+	else if (token->len == 1 && ft_strncmp(token->value, ">", 1) == 0)	// RIGHT REDIRECTION
 		token->type = RIGHT;
-	}
 	// TODO: remember to add other bash symbols
 	else {
 		last_node = ft_lstlast(tokens);
-		// If this can be a command, we check if we already have a command
-		if (last_node) {
+		if (last_node)
 			last_token = (t_token *)last_node->content;
-			printf("Last token was %s of type %d\n", last_token->value, last_token->type);
-		}
-		// Create function to check if a command exists
-		if (last_node && (last_token->type == DOUBLE_LEFT || last_token->type == LEFT))
-		{
-			printf("This is the left redirection argument\n");
+		if (last_node && (last_token->type == DOUBLE_LEFT || last_token->type == LEFT))			// DOUBLE LEFT REDIRECTION ARGUMENT
 			token->type = LEFT_ARG;
-		}
-		else if (last_node && (last_token->type == DOUBLE_RIGHT || last_token->type == RIGHT))
-		{
-			printf("This is the right redirection argument\n");
+		else if (last_node && (last_token->type == DOUBLE_RIGHT || last_token->type == RIGHT))	// DOUBLE RIGHT REDIRECTION ARGUMENT
 			token->type = RIGHT_ARG;
-		}
-		else if(last_node && (last_token->type == COMMAND || last_token->type == ARG))
-		{
-			printf("This is an argument\n");
+		else if(last_node && (last_token->type == COMMAND || last_token->type == ARG))			// ARGUMENTS
 			token->type = ARG;
-		}
-		else if (!last_node || !has_command(tokens))
-		{
-			printf("This is a command\n");
+		else if (!last_node || !has_command(tokens))											// COMMAND
 			token->type = COMMAND;
-		}
 	}
 }
 
-void	parse_command(char *command_string)
+//TODO: add arguments, redirections and so on
+t_command	*create_command(t_list *tokens)
+{
+	t_list		*current_node;
+	t_token		*current_tok;
+	t_command	*command;
+	int			token_size;
+
+	command = (t_command *)calloc(1, sizeof(t_command));
+	current_node = tokens;
+	while (current_node)
+	{
+		current_tok = (t_token *)current_node->content;
+		if (current_tok->type == COMMAND)
+		{
+			token_size = ft_strlen(current_tok -> value);
+			command->command = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
+			ft_strncpy(command->command, current_tok->value, token_size + 1);
+			printf("Command found %s. Length: %d\n", command->command, token_size);
+		}
+		else if (current_tok->type == LEFT)
+		{
+			
+		}
+		current_node = current_node->next;
+	}
+	return (command);
+}
+
+t_command	*parse_command(char *command_string)
 {
 	char			*beginning;
 	t_token			*token;
@@ -125,7 +141,7 @@ void	parse_command(char *command_string)
 		if (ft_isalpha(*command_string) || *command_string == '-')
 		{
 			beginning = command_string;
-			while (ft_isalpha(*command_string) || *command_string == '-' && *command_string)
+			while ((ft_isalpha(*command_string) || *command_string == '-') && *command_string)
 			{
 				command_string++;
 				token -> len++;
@@ -171,9 +187,11 @@ void	parse_command(char *command_string)
 		printf("Token: %s\n", token->value);
 		get_token_type(token, tokens);
 		ft_lstadd_back(&tokens, ft_lstnew(token));
-		printf("\n");
 	}
+	printf("Now we have the tokens, lets create a command to execute\n");
+	return (create_command(tokens));
 }
+
 
 void	parse_input(char *input)
 {
