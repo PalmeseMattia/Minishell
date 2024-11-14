@@ -122,6 +122,11 @@ t_command	*create_command(t_list *tokens)
 	return (command);
 }
 
+BOOL is_valid_arg_char(char c)
+{
+	return (ft_isalpha(c) || c =='=' || c =='-');
+}
+
 t_command	*parse_command(char *command_string)
 {
 	char			*beginning;
@@ -138,10 +143,10 @@ t_command	*parse_command(char *command_string)
 			command_string++;
 		}
 
-		if (ft_isalpha(*command_string) || *command_string == '-')
+		if (is_valid_arg_char(*command_string))
 		{
 			beginning = command_string;
-			while ((ft_isalpha(*command_string) || *command_string == '-') && *command_string)
+			while ((is_valid_arg_char(*command_string)) && *command_string)
 			{
 				command_string++;
 				token -> len++;
