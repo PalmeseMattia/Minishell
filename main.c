@@ -200,6 +200,7 @@ t_command	*parse_command(char *command_string)
 			// Here i have a new token
 			token->value = (char *)calloc(token->len + 1, sizeof(char));
 			strncpy(token->value, beginning, token->len);
+			command_string++;
 		}
 		printf("Token: %s\n", token->value);
 		get_token_type(token, tokens);
