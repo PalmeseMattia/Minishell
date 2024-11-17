@@ -189,6 +189,18 @@ t_command	*parse_command(char *command_string)
 				command_string += 1;
 			}
 		}
+		else if (*command_string == '"')
+		{
+			beginning = ++command_string;
+			while (*command_string && *command_string != '"')
+			{
+				command_string++;
+				token -> len++;
+			}
+			// Here i have a new token
+			token->value = (char *)calloc(token->len + 1, sizeof(char));
+			strncpy(token->value, beginning, token->len);
+		}
 		printf("Token: %s\n", token->value);
 		get_token_type(token, tokens);
 		ft_lstadd_back(&tokens, ft_lstnew(token));
