@@ -122,9 +122,28 @@ t_command	*create_command(t_list *tokens)
 	return (command);
 }
 
-BOOL is_valid_arg_char(char c)
+BOOL	is_valid_arg_char(char c)
 {
 	return (ft_isalpha(c) || c =='=' || c =='-');
+}
+
+void	expand(char **env_var)
+{
+	char *expanded;
+
+	if (!env_var || !*env_var)
+		return ;
+	expanded = getenv(*env_var);
+	if (!expanded)
+	{
+		*env_var = (char *)calloc(1, sizeof(char));
+		*env_var[0] = '\0';
+	}
+	else
+	{
+		*env_var = (char *)calloc(ft_strlen(expanded), sizeof(char));
+		ft_strncpy(*env_var, expanded, ft_strlen(expanded));
+	}
 }
 
 t_command	*parse_command(char *command_string)
@@ -200,6 +219,21 @@ t_command	*parse_command(char *command_string)
 			// Here i have a new token
 			token->value = (char *)calloc(token->len + 1, sizeof(char));
 			strncpy(token->value, beginning, token->len);
+			command_string++;
+		}
+		else if (*command_string == '$')
+		{
+			printf("Found env variable\n");
+			beginning = ++command_string;
+			while (*command_string && is_valid_arg_char(*command_string))
+			{
+				command_string++;
+				token -> len++;
+			}
+			// Here i have a new token
+			token->value = (char *)calloc(token->len + 1, sizeof(char));
+			strncpy(token->value, beginning, token->len);
+			expand(&token->value);
 			command_string++;
 		}
 		printf("Token: %s\n", token->value);
