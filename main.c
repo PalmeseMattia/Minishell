@@ -91,6 +91,7 @@ void	get_token_type(t_token *token, t_list *tokens)
 		else if (!last_node || !has_command(tokens))											// COMMAND
 			token->type = COMMAND;
 	}
+	printf("Token of type %d\n", token->type);
 }
 
 //TODO: add arguments, redirections and so on
@@ -124,7 +125,7 @@ t_command	*create_command(t_list *tokens)
 
 BOOL	is_valid_arg_char(char c)
 {
-	return (ft_isalpha(c) || c =='=' || c =='-');
+	return (!ft_isspace(c) && !ft_strchr("|<>\"\'$", c));
 }
 
 void	expand(char **env_var)
@@ -161,20 +162,10 @@ t_command	*parse_command(char *command_string)
 		{
 			command_string++;
 		}
+		if (*command_string == 0)
+			break ;
 
-		if (is_valid_arg_char(*command_string))
-		{
-			beginning = command_string;
-			while ((is_valid_arg_char(*command_string)) && *command_string)
-			{
-				command_string++;
-				token -> len++;
-			}
-			// Here i have a new token
-			token->value = (char *)calloc(token->len + 1, sizeof(char));
-			strncpy(token->value, beginning, token->len);
-		}
-		else if (*command_string == '<')
+		if (*command_string == '<')
 		{
 			if (*(command_string + 1) == '<')
 			{
@@ -234,6 +225,18 @@ t_command	*parse_command(char *command_string)
 			token->value = (char *)calloc(token->len + 1, sizeof(char));
 			strncpy(token->value, beginning, token->len);
 			expand(&token->value);
+		}
+		else if (*command_string)
+		{
+			beginning = command_string;
+			while ((is_valid_arg_char(*command_string)) && *command_string)
+			{
+				command_string++;
+				token -> len++;
+			}
+			// Here i have a new token
+			token->value = (char *)calloc(token->len + 1, sizeof(char));
+			strncpy(token->value, beginning, token->len);
 		}
 		printf("Token: %s\n", token->value);
 		get_token_type(token, tokens);
