@@ -91,7 +91,7 @@ void	get_token_type(t_token *token, t_list *tokens)
 		else if (!last_node || !has_command(tokens))											// COMMAND
 			token->type = COMMAND;
 	}
-	printf("Token of type %d\n", token->type);
+	//printf("Token of type %d\n", token->type);
 }
 
 //TODO: add arguments, redirections and so on
@@ -112,11 +112,45 @@ t_command	*create_command(t_list *tokens)
 			token_size = ft_strlen(current_tok -> value);
 			command->command = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
 			ft_strncpy(command->command, current_tok->value, token_size + 1);
-			printf("Command found %s. Length: %d\n", command->command, token_size);
+			printf("Found Command: %s\n", command->command);
+		}
+		else if (current_tok->type == LEFT_ARG)
+		{
+			token_size = ft_strlen(current_tok -> value);
+			command->left_arg = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
+			ft_strncpy(command->left_arg, current_tok->value, token_size + 1);
+			printf("Found left redirection argument %s\n", command->left_arg);
+		}
+		else if (current_tok->type == RIGHT_ARG)
+		{
+			token_size = ft_strlen(current_tok -> value);
+			command->right_arg = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
+			ft_strncpy(command->right_arg, current_tok->value, token_size + 1);
+			printf("Found right redirection argument %s\n", command->right_arg);
 		}
 		else if (current_tok->type == LEFT)
 		{
-			
+			command->double_left_redir = FALSE;
+			command->left_redir = TRUE;
+			printf("Found left redirection!\n");
+		}
+		else if (current_tok->type == RIGHT)
+		{
+			command->double_right_redir = FALSE;
+			command->right_redir = TRUE;
+			printf("Found right redirection!\n");
+		}
+		else if (current_tok->type == DOUBLE_LEFT)
+		{
+			command->double_left_redir = TRUE;
+			command->left_redir = FALSE;
+			printf("Found double left redirection!\n");
+		}
+		else if (current_tok->type == DOUBLE_RIGHT)
+		{
+			command->double_right_redir = TRUE;
+			command->right_redir = FALSE;
+			printf("Found double right redirection!\n");
 		}
 		current_node = current_node->next;
 	}
@@ -214,7 +248,7 @@ t_command	*parse_command(char *command_string)
 		}
 		else if (*command_string == '$')
 		{
-			printf("Found env variable\n");
+			//printf("Found env variable\n");
 			beginning = ++command_string;
 			while (*command_string && is_valid_arg_char(*command_string))
 			{
@@ -238,11 +272,11 @@ t_command	*parse_command(char *command_string)
 			token->value = (char *)calloc(token->len + 1, sizeof(char));
 			strncpy(token->value, beginning, token->len);
 		}
-		printf("Token: %s\n", token->value);
+		//printf("Token: %s\n", token->value);
 		get_token_type(token, tokens);
 		ft_lstadd_back(&tokens, ft_lstnew(token));
 	}
-	printf("Now we have the tokens, lets create a command to execute\n");
+	//printf("Now we have the tokens, lets create a command to execute\n");
 	return (create_command(tokens));
 }
 
