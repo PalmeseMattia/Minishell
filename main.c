@@ -42,6 +42,7 @@ typedef struct s_command
 	char	**args;
 	char	*left_arg;
 	char	*right_arg;
+	int		argc;
 	BOOL	left_redir;
 	BOOL	double_left_redir;
 	BOOL	right_redir;
@@ -86,12 +87,28 @@ void	get_token_type(t_token *token, t_list *tokens)
 			token->type = LEFT_ARG;
 		else if (last_node && (last_token->type == DOUBLE_RIGHT || last_token->type == RIGHT))	// DOUBLE RIGHT REDIRECTION ARGUMENT
 			token->type = RIGHT_ARG;
-		else if(last_node && (last_token->type == COMMAND || last_token->type == ARG))			// ARGUMENTS
-			token->type = ARG;
 		else if (!last_node || !has_command(tokens))											// COMMAND
 			token->type = COMMAND;
+		else
+			token->type = ARG;
 	}
 	//printf("Token of type %d\n", token->type);
+}
+
+int	count_args(t_list *tokens)
+{
+	t_token	*current_tok;
+	int	arguments;
+
+	arguments = 0;
+	while (tokens)
+	{
+		current_tok = (t_token *)tokens->content;
+		if (current_tok->type == ARG)
+			arguments++;
+		tokens = tokens->next;
+	}
+	return (arguments);
 }
 
 //TODO: add arguments, redirections and so on
@@ -102,55 +119,64 @@ t_command	*create_command(t_list *tokens)
 	t_command	*command;
 	int			token_size;
 
-	command = (t_command *)calloc(1, sizeof(t_command));
 	current_node = tokens;
+	command = (t_command *)calloc(1, sizeof(t_command));
+	command->args = (char **)calloc(count_args(tokens) + 1, sizeof(char *));
+	command->args[count_args(tokens)] = NULL;
+
 	while (current_node)
 	{
 		current_tok = (t_token *)current_node->content;
 		if (current_tok->type == COMMAND)
 		{
 			token_size = ft_strlen(current_tok -> value);
-			command->command = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
+			command->command = (char *)calloc(token_size + 1, sizeof(char));
 			ft_strncpy(command->command, current_tok->value, token_size + 1);
-			printf("Found Command: %s\n", command->command);
+			//printf("Found Command: %s\n", command->command);
 		}
 		else if (current_tok->type == LEFT_ARG)
 		{
 			token_size = ft_strlen(current_tok -> value);
-			command->left_arg = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
+			command->left_arg = (char *)calloc(token_size + 1, sizeof(char));
 			ft_strncpy(command->left_arg, current_tok->value, token_size + 1);
-			printf("Found left redirection argument %s\n", command->left_arg);
+			//printf("Found left redirection argument %s\n", command->left_arg);
 		}
 		else if (current_tok->type == RIGHT_ARG)
 		{
 			token_size = ft_strlen(current_tok -> value);
-			command->right_arg = (char *)calloc(ft_strlen(current_tok -> value) + 1, sizeof(char));
+			command->right_arg = (char *)calloc(token_size + 1, sizeof(char));
 			ft_strncpy(command->right_arg, current_tok->value, token_size + 1);
-			printf("Found right redirection argument %s\n", command->right_arg);
+			//printf("Found right redirection argument %s\n", command->right_arg);
 		}
 		else if (current_tok->type == LEFT)
 		{
 			command->double_left_redir = FALSE;
 			command->left_redir = TRUE;
-			printf("Found left redirection!\n");
+			//printf("Found left redirection!\n");
 		}
 		else if (current_tok->type == RIGHT)
 		{
 			command->double_right_redir = FALSE;
 			command->right_redir = TRUE;
-			printf("Found right redirection!\n");
+			//printf("Found right redirection!\n");
 		}
 		else if (current_tok->type == DOUBLE_LEFT)
 		{
 			command->double_left_redir = TRUE;
 			command->left_redir = FALSE;
-			printf("Found double left redirection!\n");
+			//printf("Found double left redirection!\n");
 		}
 		else if (current_tok->type == DOUBLE_RIGHT)
 		{
 			command->double_right_redir = TRUE;
 			command->right_redir = FALSE;
-			printf("Found double right redirection!\n");
+			//printf("Found double right redirection!\n");
+		}
+		else if (current_tok->type == ARG)
+		{
+			//printf("Found argument: %s\n", current_tok->value);
+			command->args[command->argc] = calloc(current_tok->len + 1, sizeof(char));
+			ft_strncpy(command->args[command->argc++], current_tok->value, current_tok->len); 
 		}
 		current_node = current_node->next;
 	}
@@ -280,16 +306,43 @@ t_command	*parse_command(char *command_string)
 	return (create_command(tokens));
 }
 
+void	print_command(t_command *command)
+{
+		printf("Command: %s\n", command->command);
+		printf("Arguments: ");
+		for (int i = 0; command->args[i]; i++)
+			printf("%s ", command->args[i]);
+		printf("\n");
+		if (command->left_redir)
+		{
+			printf("Left redirection: %s\n", command->left_arg);
+		}
+		else if (command->double_left_redir)
+		{
+			printf("Double Left redirection: %s\n", command->left_arg);
+		}
+		if (command->right_redir)
+		{
+			printf("Right redirection: %s\n", command->right_arg);
+		}
+		else if (command->double_right_redir)
+		{
+			printf("Double Right redirection: %s\n", command->right_arg);
+		}
+}
+
 
 void	parse_input(char *input)
 {
 	char		**command_strings;
+	t_command	*command;
 
 	command_strings = ft_split(input, PIPE);
 	while (*command_strings)
 	{
 		printf("Parsing command %s\n", *command_strings);
-		parse_command(*command_strings++);
+		command = parse_command(*command_strings++);
+		print_command(command);
 	}
 }
 
