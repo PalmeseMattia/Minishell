@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -331,6 +332,10 @@ void	print_command(t_command *command)
 		}
 }
 
+void	execute_command(t_command *command)
+{
+	execve("/bin/ls", NULL, NULL);
+}
 
 void	parse_input(char *input)
 {
@@ -341,8 +346,8 @@ void	parse_input(char *input)
 	while (*command_strings)
 	{
 		printf("Parsing command %s\n", *command_strings);
-		command = parse_command(*command_strings++);
-		print_command(command);
+		execute_command(parse_command(*command_strings++));
+		//print_command(command);
 	}
 }
 
